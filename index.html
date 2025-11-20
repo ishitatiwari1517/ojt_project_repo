@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TaskCLI</title>
+  <link rel="stylesheet" href="style.css">
+  </head>
+
+  <body id="main-body-container">
+
+    <div class="popup-overlay" id="popup">
+      <div class="popup-box">
+        <h3>Add New Task</h3>
+        <input type="text" id="taskName" placeholder="Task" />
+        <input type="text" id="projectName" placeholder="Project" />
+
+        <select id="priority">
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+
+        <input type="date" id="dueDate" />
+        <input type="time" id="dueTime" />
+
+        <div class="popup-actions">
+          <button class="btn-small btn-cancel" onclick="closePopup()">Cancel</button>
+          <button class="btn-small btn-confirm" onclick="saveTask()">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table">
+      <h2>TaskCLI</h2>
+      <div class="menu-item">Dashboard</div>
+      <div class="menu-item">All Tasks</div>
+      <div class="menu-item">Today</div>
+      <div class="menu-item">High Priority</div>
+      <div class="menu-item">Recurring</div>
+
+      <h3>Projects</h3>
+      <div class="menu-item">Work</div>
+      <div class="menu-item">College</div>
+      <div class="menu-item">Personal</div>
+    </div>
+
+    <div class="main">
+      <div id="alert-bar" class="alert-box"></div>
+
+      <button class="btn" onclick="openPopup()">+ Add Task</button>
+
+      <div class="stats-container">
+        <div class="stat-box">
+          <div class="stat-title">Total Tasks</div>
+          <div class="stat-number">18</div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-title">Completed</div>
+          <div class="stat-number" id="completed-count">12</div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-title">Recurring</div>
+          <div class="stat-number">5</div>
+        </div>
+      </div>
+
+      <div class="table2">
+        <table width="100%">
+          <tr>
+            <th>Task</th>
+            <th>Project</th>
+            <th>Priority</th>
+            <th>Due Date</th>
+            <th>Due Time</th>
+            <th>Action</th>
+          </tr>
+
+          <tr data-date="2025-01-28" data-time="14:30">
+            <td>Finish Assignment</td>
+            <td>College</td>
+            <td class="priority-high">High</td>
+            <td>2025-01-28</td>
+            <td>14:30</td>
+            <td>
+              <button class="complete-btn" onclick="markComplete(this)">✔ Complete</button>
+            </td>
+          </tr>
+
+          <tr data-date="2025-01-29" data-time="10:00">
+            <td>Team Meeting</td>
+            <td>Work</td>
+            <td class="priority-med">Medium</td>
+            <td>2025-01-29</td>
+            <td>10:00</td>
+            <td><button class="complete-btn" onclick="markComplete(this)">✔ Complete</button></td>
+          </tr>
+
+          <tr data-date="2025-02-02" data-time="18:00">
+            <td>Workout</td>
+            <td>Personal</td>
+            <td class="priority-low">Low</td>
+            <td>2025-02-02</td>
+            <td>18:00</td>
+            <td><button class="complete-btn" onclick="markComplete(this)">✔ Complete</button></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <script src="script.js">
+    </script>
+  </body>
+</html>
