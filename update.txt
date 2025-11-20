@@ -1,3 +1,0 @@
-<-- 20th november 2025 -->
-worked on the frontend designs 
-did research about django did the setup in vs code
