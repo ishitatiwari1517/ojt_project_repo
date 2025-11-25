@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TaskCLI - Login</title>
+
+<style>
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Inter", sans-serif;
+    background: radial-gradient(circle at top left, #3B82F6, #1E3A8A 60%);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.auth-container {
+    width: 380px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 30px;
+    color: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 50, 0.2);
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-container { animation: none; }
+}
+
+.auth-container h2 {
+    margin-bottom: 20px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.input-field {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    margin: 10px 0;
+    font-size: 15px;
+    outline: none;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    background: #1E3A8A;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    background: #1D4ED8;
+}
+
+.switch-text {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.switch-text span {
+    color: #93C5FD;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+</style>
+</head>
+
+<body>
+<div class="auth-container" id="authBox">
+
+    <div id="loginForm">
+        <h2>TaskCLI Login</h2>
+        
+    <form action="/login/" method="POST">
+    {% csrf_token %}
+    
+    {% if error %}
+        <p style="color:red">{{ error }}</p>
+    {% endif %}
+    
+    <input name="email" type="email" class="input-field" placeholder="Email" required>
+    <input name="password" type="password" class="input-field" placeholder="Password" required>
+
+    <button type="submit" class="btn">Login</button>
+    </form>
+
+        <div class="switch-text">
+            Don't have an account? <span onclick="showSignup()">Sign up</span>
+        </div>
+    </div>
+
+    <div id="signupForm" style="display:none;">
+        <h2>Create Account</h2>
+
+        {% if error %}
+            <p style="color:red">{{ error }}</p>
+        {% endif %}
+
+        <form action="/register/" method="POST">
+            {% csrf_token %}
+            <input type="text" name="name" class="input-field" placeholder="Full Name" required>
+            <input type="email" name="email" class="input-field" placeholder="Email" required>
+            <input type="password" name="password" class="input-field" placeholder="Password" required>
+
+            <button type="submit" class="btn">Sign Up</button>
+        </form>
+
+        <div class="switch-text">
+            Already have an account? <span onclick="showLogin()">Login</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function showSignup() {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("signupForm").style.display = "block";
+}
+function showLogin() {
+    document.getElementById("signupForm").style.display = "none";
+    document.getElementById("loginForm").style.display = "block";
+}
+</script>
+</body>
+</html>
