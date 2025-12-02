@@ -118,6 +118,57 @@ def complete_task(request, task_id):
     return redirect("/dashboard/")
 
 @login_required(login_url="/")
+def pending_task(request, task_id):
+    try:
+        task = Task.objects.get(id=task_id, user=request.user)
+        task.completed = False
+        task.save()
+    except Task.DoesNotExist:
+        pass
+    return redirect("/dashboard/")
+
+@login_required(login_url="/")
+@csrf_protect
+def edit_task(request, task_id):
+    try:
+        task = Task.objects.get(id=task_id, user=request.user)
+    except Task.DoesNotExist:
+        return redirect("/dashboard/")
+    
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        project = request.POST.get("project", "").strip()
+        priority = request.POST.get("priority", "Medium").strip()
+        due_date = request.POST.get("due_date", "").strip()
+        due_time = request.POST.get("due_time", "").strip()
+
+        if not name or not project or not due_date or not due_time:
+            tasks = Task.objects.filter(user=request.user)
+            return render(request, "dashboard.html", {
+                'tasks': tasks,
+                'user_name': request.user.first_name or request.user.username,
+                'error': 'All fields required'
+            })
+
+        try:
+            task.name = name
+            task.project = project
+            task.priority = priority
+            task.due_date = due_date
+            task.due_time = due_time
+            task.save()
+            return redirect("/dashboard/")
+        except Exception as e:
+            tasks = Task.objects.filter(user=request.user)
+            return render(request, "dashboard.html", {
+                'tasks': tasks,
+                'user_name': request.user.first_name or request.user.username,
+                'error': 'Invalid input. Please check the date and time format.'
+            })
+    
+    return redirect("/dashboard/")
+
+@login_required(login_url="/")
 def delete_task(request, task_id):
     try:
         task = Task.objects.get(id=task_id, user=request.user)

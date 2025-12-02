@@ -19,6 +19,36 @@ body {
     position: relative;
 }
 
+.floating-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(208, 227, 228, 0.35);
+    box-shadow: 0 0 60px 45px rgba(255,255,255,0.28);
+    filter: blur(20px);
+    animation: floatCrazy 10s infinite ease-in-out alternate;
+}
+.circle1 { width: 240px; height: 240px; top: 5%; left: 10%; opacity: 0.40; animation-duration: 9s; }
+.circle2 { width: 310px; height: 310px; bottom: 12%; right: 12%; opacity: 0.32; animation-duration: 12s; }
+.circle3 { width: 180px; height: 180px; top: 65%; left: 18%; opacity: 0.28; animation-duration: 7s; }
+.circle4 { width: 260px; height: 260px; top: 30%; right: 22%; opacity: 0.33; animation-duration: 11s; }
+.circle5 { width: 140px; height: 140px; top: 15%; right: 35%; opacity: 0.45; animation-duration: 6s; }
+.circle6 { width: 200px; height: 200px; bottom: 20%; left: 30%; opacity: 0.38; animation-duration: 8s; }
+.circle7 { width: 110px; height: 110px; bottom: 5%; right: 45%; opacity: 0.30; animation-duration: 5s; }
+.circle8 { width: 170px; height: 170px; top: 45%; left: 5%; opacity: 0.42; animation-duration: 13s; }
+.circle9 { width: 220px; height: 220px; top: 10%; right: 5%; opacity: 0.37; animation-duration: 10s; }
+.circle10 { width: 150px; height: 150px; bottom: 35%; right: 25%; opacity: 0.40; animation-duration: 9s; }
+
+
+@keyframes floatCrazy {
+    0%   { transform: translate(0px, 0px) scale(1); }
+    20%  { transform: translate(120px, -80px) scale(1.1); }
+    40%  { transform: translate(-150px, 90px) scale(0.9); }
+    60%  { transform: translate(160px, 120px) scale(1.08); }
+    80%  { transform: translate(-200px, -140px) scale(0.95); }
+    100% { transform: translate(180px, -60px) scale(1.12); }
+} 
+
+
 .auth-container {
     width: 380px;
     background: rgba(255, 255, 255, 0.15);
@@ -88,6 +118,17 @@ body {
 </head>
 
 <body>
+<div class="floating-circle circle1"></div>
+<div class="floating-circle circle2"></div>
+<div class="floating-circle circle3"></div>
+<div class="floating-circle circle4"></div>
+<div class="floating-circle circle5"></div>
+<div class="floating-circle circle6"></div>
+<div class="floating-circle circle7"></div>
+<div class="floating-circle circle8"></div>
+<div class="floating-circle circle9"></div>
+<div class="floating-circle circle10"></div>
+
 <div class="auth-container" id="authBox">
 
     <div id="loginForm">

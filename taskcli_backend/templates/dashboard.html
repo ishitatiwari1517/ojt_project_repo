@@ -1,32 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>TaskCLI</title>
-    <link rel="stylesheet" href="/static/style.css" />
-  </head>
-  <body id="main-body-container">
-    <div class="popup-overlay" id="popup">
-      <div class="popup-box">
-        <h3 id="popup-title">Add New Task</h3>
-
-        <form id="taskForm" method="POST" action="/add-task/">
-          {% csrf_token %}
-          <input type="text" name="name" id="taskName" placeholder="Task" required />
-          <input type="text" name="project" id="projectName" placeholder="Project" required />
-
-          <select name="priority" id="priority" required>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-
-          <input type="date" name="due_date" id="dueDate" required />
-          <input type="time" name="due_time" id="dueTime" required />
-
-          <div class="popup-actions">
+{% comment %} ions">
             <button type="button" class="btn-small btn-cancel" id="cancelBtn">Cancel</button>
-            <button type="submit" class="btn-small btn-confirm" id="saveBtn">Add</button>
+            <button type="submit" class="btn-small btn-confirm" id="saveBtn">Add</button> {% endcomment %}
           </div>
         </form>
       </div>
@@ -36,25 +10,41 @@
       <div class="table">
         <h2>TaskCLI</h2>
         <button class="logout-btn" id="logoutBtn" onclick="logout()">Logout</button>
+        <br></br>
 
-        <div class="menu-item">Dashboard</div>
-        <div class="menu-item">All Tasks</div>
-        <div class="menu-item">Today</div>
-        <div class="menu-item">High Priority</div>
+        {% comment %} <select name="Task Status" id="Task Status" class="menu-item" required>
+            <option value="Completed">Completed</option>
+            <option value="Pending">Pending</option>
+        </select> {% endcomment %}
 
-        <h3>Projects</h3>
-        <div class="menu-item">Work</div>
-        <div class="menu-item">College</div>
-        <div class="menu-item">Personal</div>
+        <div class="menu-item" onclick="filterTasks('completed')">Completed</div>
+     <div class="menu-item" onclick="filterTasks('pending')">Pending</div>
+
+     <div class="menu-item" onclick="filterTasks('high')">High Priority</div>
+     <div class="menu-item" onclick="filterTasks('medium')">Medium Priority</div>
+     <div class="menu-item" onclick="filterTasks('low')">Low Priority</div>
+     <div class="menu-item" onclick="filterTasks('recurring')">Recurring</div>
+
+     <h3>Projects</h3>
+     <div class="menu-item" onclick="filterTasks('Professional')">Professional</div>
+     <div class="menu-item" onclick="filterTasks('College')">College</div>
+     <div class="menu-item" onclick="filterTasks('Personal')">Personal</div>
+     <div class="menu-item" onclick="filterTasks('New Project')">New Project</div>
+
+     <div class="menu-item" onclick="filterTasks('all')">Show All</div>
+
       </div>
 
       <div class="main">
+        <h1 style="margin-top: 0; margin-bottom: 20px; color: #1e3a8a; font-size: 28px;">Hi {{ user_name }}</h1>
+        
+        <div id="alert-bar" class="alert-box alert-info" style="display: block !important; visibility: visible !important; margin-top: 0; margin-bottom: 20px; min-height: 50px;"></div>
+        
         {% if error %}
         <div id="error-bar" class="alert-box" style="color: red; background-color: #ffebee; padding: 10px; margin-bottom: 15px; border-radius: 4px; display: block;">
           {{ error }}
         </div>
         {% endif %}
-        <div id="alert-bar" class="alert-box"></div>
 
         <button class="btn" id="addTaskBtn" onclick="openModal()">+ Add Task</button>
 
@@ -66,12 +56,12 @@
 
           <div class="stat-box">
             <div class="stat-title">Completed</div>
-            <div class="stat-number" id="completed-count">0</div>
+            <div class="stat-number" id="completed-count">{{ completed|length }}</div>
           </div>
 
           <div class="stat-box">
             <div class="stat-title">High Priority</div>
-            <div class="stat-number" id="recurring-count">0</div>
+            <div class="stat-number" id="recurring-count">{{ highPriority|length }}</div>
           </div>
         </div>
 
@@ -96,9 +86,10 @@
                 <td>{{ task.due_date }}</td>
                 <td>{{ task.due_time }}</td>
                 <td class="actions-cell">
-                  {% if not task.completed %}
-                    <button class="complete-btn" onclick="completeTask({{ task.id }})">✔ Complete</button>
-                  {% endif %}
+                  <select class="status-dropdown" onchange="updateTaskStatus({{ task.id }}, this.value)">
+                    <option value="pending" {% if not task.completed %}selected{% endif %}>Pending</option>
+                    <option value="completed" {% if task.completed %}selected{% endif %}>Completed</option>
+                  </select>
                   <button class="action-btn" style="background: #f3f4f6; color: #1e3a8a;" onclick="editTask({{ task.id }})">Edit</button>
                   <button class="action-btn" style="background: #fecaca; color: #dc2626;" onclick="deleteTask({{ task.id }})">Delete</button>
                 </td>
@@ -116,8 +107,19 @@
 
     <script>
     let countdownInterval = null;
+    let editingTaskId = null;
 
     function openModal() {
+        editingTaskId = null;
+        document.getElementById("popup-title").textContent = "Add New Task";
+        document.getElementById("saveBtn").textContent = "Add";
+        document.getElementById("taskForm").action = "/add-task/";
+        document.getElementById("editTaskId").value = "";
+        document.getElementById("taskName").value = "";
+        document.getElementById("projectName").value = "Professional";
+        document.getElementById("priority").value = "Medium";
+        document.getElementById("dueDate").value = "";
+        document.getElementById("dueTime").value = "";
         document.getElementById("popup").style.display = "flex";
         document.getElementById("app-content").classList.add("blur");
     }
@@ -125,25 +127,60 @@
     function closeModal() {
         document.getElementById("popup").style.display = "none";
         document.getElementById("app-content").classList.remove("blur");
+        editingTaskId = null;
     }
 
     function logout() {
         window.location.href = "/logout/";
     }
 
-    function completeTask(taskId) {
-        if (!confirm('Mark this task as complete?')) return;
-        window.location.href = `/complete-task/${taskId}/`;
+    function updateTaskStatus(taskId, status) {
+        if (status === 'completed') {
+            window.location.href = `/complete-task/${taskId}/`;
+        } else {
+            window.location.href = `/pending-task/${taskId}/`;
+        }
     }
 
     function editTask(taskId) {
-        alert('Edit functionality coming soon!');
+        // Get the task row
+        const row = document.querySelector(`tr[data-task-id="${taskId}"]`);
+        if (!row) return;
+
+        // Extract task data from the row
+        const taskName = row.children[0].textContent;
+        const project = row.children[1].textContent;
+        const priority = row.children[2].textContent;
+        const dueDate = row.dataset.date;
+        const dueTime = row.dataset.time;
+
+        // Populate the form
+        document.getElementById("popup-title").textContent = "Edit Task";
+        document.getElementById("saveBtn").textContent = "Update";
+        document.getElementById("taskForm").action = `/edit-task/${taskId}/`;
+        document.getElementById("editTaskId").value = taskId;
+        document.getElementById("taskName").value = taskName;
+        document.getElementById("projectName").value = project;
+        document.getElementById("priority").value = priority;
+        document.getElementById("dueDate").value = dueDate;
+        document.getElementById("dueTime").value = dueTime;
+        
+        editingTaskId = taskId;
+
+        // Open the modal
+        document.getElementById("popup").style.display = "flex";
+        document.getElementById("app-content").classList.add("blur");
     }
 
     function deleteTask(taskId) {
         if (!confirm('Delete this task?')) return;
         window.location.href = `/delete-task/${taskId}/`;
     }
+
+    // Handle form submission to refresh alert after adding task
+    document.getElementById("taskForm").addEventListener("submit", function(e) {
+        // Form will submit normally, page will reload
+    });
 
     document.getElementById("cancelBtn").onclick = closeModal;
 
@@ -184,13 +221,36 @@
             countdownInterval = null;
         }
 
-        const rows = Array.from(document.querySelectorAll("#taskTbody tr"));
         const alertBar = document.getElementById("alert-bar");
+        const tbody = document.getElementById("taskTbody");
+        
+        // Get all rows from the table body
+        const allRows = Array.from(tbody.getElementsByTagName("tr"));
+        
+        console.log('Total rows in table:', allRows.length);
 
-        const pendingRows = rows.filter(r => !r.classList.contains("completed"));
+        // Filter: exclude completed tasks and the "no tasks" placeholder row
+        const pendingRows = allRows.filter(r => {
+            // Check if this is the "no tasks" message row
+            const firstCell = r.children[0] ? r.children[0].textContent.trim() : '';
+            if (firstCell.includes('No tasks yet')) {
+                return false;
+            }
+            
+            // Check if row has data attributes (real task)
+            const hasData = r.dataset.date && r.dataset.time;
+            const isNotCompleted = !r.classList.contains("completed");
+            
+            return hasData && isNotCompleted;
+        });
+
+        console.log('Pending rows after filter:', pendingRows.length);
 
         if (pendingRows.length === 0) {
-            alertBar.classList.remove('show');
+            alertBar.innerHTML = '<strong>📋 No pending tasks</strong> — Add a task to get started';
+            alertBar.className = 'alert-box alert-info';
+            alertBar.style.display = 'block';
+            alertBar.style.visibility = 'visible';
             return;
         }
 
@@ -198,53 +258,75 @@
         let nearest = null, nearestDiff = Infinity;
 
         pendingRows.forEach(r => {
-            const d = new Date(isoDatetimeFrom(r.dataset.date || '', r.dataset.time || '00:00'));
-            const diff = Math.abs(d - now);
-            if (diff < nearestDiff) {
-                nearestDiff = diff;
-                nearest = { row: r, due: d };
+            try {
+                const dateStr = r.dataset.date;
+                const timeStr = r.dataset.time;
+                console.log('Processing task date:', dateStr, 'time:', timeStr);
+                
+                const d = new Date(isoDatetimeFrom(dateStr, timeStr));
+                if (!isNaN(d.getTime())) {
+                    const diff = Math.abs(d - now);
+                    if (diff < nearestDiff) {
+                        nearestDiff = diff;
+                        nearest = { row: r, due: d };
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing task date:', e);
             }
         });
 
         if (!nearest) {
-            alertBar.classList.remove('show');
+            console.log('No valid nearest task found');
+            alertBar.innerHTML = '<strong>📋 No pending tasks</strong> — Add a task to get started';
+            alertBar.className = 'alert-box alert-info';
+            alertBar.style.display = 'block';
+            alertBar.style.visibility = 'visible';
             return;
         }
 
+        console.log('Found nearest task:', nearest.row.children[0].textContent);
+
         function update() {
-            const now = new Date();
-            const diffMs = nearest.due - now;
-            const abs = Math.abs(diffMs);
-            const hrs = Math.floor(abs / (1000 * 60 * 60));
-            const mins = Math.floor((abs % (1000 * 60 * 60)) / (1000 * 60));
-            const secs = Math.floor((abs % (1000 * 60)) / 1000);
+            try {
+                const now = new Date();
+                const diffMs = nearest.due - now;
+                const abs = Math.abs(diffMs);
+                const hrs = Math.floor(abs / (1000 * 60 * 60));
+                const mins = Math.floor((abs % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((abs % (1000 * 60)) / 1000);
 
-            let html = '', cls = '';
+                let html = '', cls = 'alert-info';
+                const taskName = nearest.row.children[0].textContent.trim();
 
-            if (diffMs < 0) {
-                html = `<strong>Task overdue:</strong> ${nearest.row.children[0].textContent} — Late by <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
-                cls = 'alert-danger';
-            } else if (diffMs <= 60 * 60 * 1000) {
-                html = `<strong>Due within 1 hour:</strong> ${nearest.row.children[0].textContent} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
-                cls = 'alert-warning';
-            } else {
-                const startToday = new Date();
-                startToday.setHours(0, 0, 0, 0);
-                const startTomorrow = new Date(startToday);
-                startTomorrow.setDate(startToday.getDate() + 1);
-
-                if (nearest.due >= startToday && nearest.due < startTomorrow) {
-                    html = `<strong>Due today:</strong> ${nearest.row.children[0].textContent} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
+                if (diffMs < 0) {
+                    html = `<strong>⏰ Task overdue:</strong> ${taskName} — Late by <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
+                    cls = 'alert-danger';
+                } else if (diffMs <= 60 * 60 * 1000) {
+                    html = `<strong>⚠️ Due within 1 hour:</strong> ${taskName} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
                     cls = 'alert-warning';
                 } else {
-                    html = `<strong>Upcoming:</strong> ${nearest.row.children[0].textContent} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
-                    cls = 'alert-info';
-                }
-            }
+                    const startToday = new Date();
+                    startToday.setHours(0, 0, 0, 0);
+                    const startTomorrow = new Date(startToday);
+                    startTomorrow.setDate(startToday.getDate() + 1);
 
-            alertBar.innerHTML = html;
-            alertBar.classList.remove('alert-info', 'alert-warning', 'alert-danger');
-            alertBar.classList.add(cls, 'show');
+                    if (nearest.due >= startToday && nearest.due < startTomorrow) {
+                        html = `<strong>📅 Due today:</strong> ${taskName} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
+                        cls = 'alert-warning';
+                    } else {
+                        html = `<strong>📌 Upcoming:</strong> ${taskName} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
+                        cls = 'alert-info';
+                    }
+                }
+
+                alertBar.innerHTML = html;
+                alertBar.className = 'alert-box ' + cls;
+                alertBar.style.display = 'block';
+                alertBar.style.visibility = 'visible';
+            } catch (e) {
+                console.error('Error updating alert:', e);
+            }
         }
 
         update();
@@ -253,8 +335,100 @@
 
     document.addEventListener("DOMContentLoaded", function() {
         updateStats();
-        computeNearestTask();
+        
+        // Initialize alert system
+        setTimeout(() => {
+            computeNearestTask();
+        }, 300);
     });
+
+    function filterTasks(filterType) {
+    const rows = document.querySelectorAll("#taskTbody tr");
+
+    rows.forEach(row => {
+        const isCompleted = row.classList.contains("completed");
+        const priority = row.children[2].textContent.trim().toLowerCase();
+        const project = row.children[1].textContent.trim();
+
+        let show = false;
+
+        switch(filterType) {
+
+            case 'completed':
+                show = isCompleted;
+                break;
+
+            case 'pending':
+                show = !isCompleted;
+                break;
+
+            case 'high':
+                show = priority === "high";
+                break;
+
+            case 'medium':
+                show = priority === "medium";
+                break;
+
+            case 'low':
+                show = priority === "low";
+                break;
+
+            case 'recurring':
+                show = row.dataset.recurring === "true";
+                break;
+
+            // project filters
+            case 'Professional':
+            case 'College':
+            case 'Personal':
+            case 'New Project':
+                show = project === filterType;
+                break;
+
+            case 'all':
+                show = true;
+                break;
+        }
+
+        row.style.display = show ? "" : "none";
+    });
+}
+
     </script>
   </body>
 </html>
+ <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TaskCLI</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body id="main-body-container">
+    <div class="popup-overlay" id="popup">
+      <div class="popup-box">
+        <h3 id="popup-title">Add New Task</h3>
+
+        <form id="taskForm" method="POST" action="/add-task/">
+          {% csrf_token %}
+          <input type="hidden" id="editTaskId" value="">
+          <input type="text" name="name" id="taskName" placeholder="Task" required />
+
+          <select name="project" id="projectName" required>
+            <option value="Professional">Professional</option>
+            <option value="College">College</option>
+            <option value="Personal">Personal</option>
+            <option value="New Project">New Project</option>
+          </select>
+
+          <select name="priority" id="priority" required>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+
+          <input type="date" name="due_date" id="dueDate" required />
+          <input type="time" name="due_time" id="dueTime" required />
+
+          <div class="popup-act 
