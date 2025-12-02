@@ -1,6 +1,39 @@
-{% comment %} ions">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TaskCLI</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body id="main-body-container">
+    <div class="popup-overlay" id="popup">
+      <div class="popup-box">
+        <h3 id="popup-title">Add New Task</h3>
+
+        <form id="taskForm" method="POST" action="/add-task/">
+          {% csrf_token %}
+          <input type="hidden" id="editTaskId" value="">
+          <input type="text" name="name" id="taskName" placeholder="Task" required />
+
+          <select name="project" id="projectName" required>
+            <option value="Professional">Professional</option>
+            <option value="College">College</option>
+            <option value="Personal">Personal</option>
+            <option value="New Project">New Project</option>
+          </select>
+
+          <select name="priority" id="priority" required>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+
+          <input type="date" name="due_date" id="dueDate" required />
+          <input type="time" name="due_time" id="dueTime" required />
+
+          <div class="popup-actions">
             <button type="button" class="btn-small btn-cancel" id="cancelBtn">Cancel</button>
-            <button type="submit" class="btn-small btn-confirm" id="saveBtn">Add</button> {% endcomment %}
+            <button type="submit" class="btn-small btn-confirm" id="saveBtn">Add</button>
           </div>
         </form>
       </div>
@@ -56,12 +89,12 @@
 
           <div class="stat-box">
             <div class="stat-title">Completed</div>
-            <div class="stat-number" id="completed-count">{{ completed|length }}</div>
+            <div class="stat-number" id="completed-count">6</div>
           </div>
 
           <div class="stat-box">
             <div class="stat-title">High Priority</div>
-            <div class="stat-number" id="recurring-count">{{ highPriority|length }}</div>
+            <div class="stat-number" id="recurring-count">8</div>
           </div>
         </div>
 
@@ -79,7 +112,7 @@
             </thead>
             <tbody id="taskTbody">
               {% for task in tasks %}
-              <tr data-date="{{ task.due_date }}" data-time="{{ task.due_time }}" data-task-id="{{ task.id }}" {% if task.completed %}class="completed"{% endif %}>
+              <tr data-date="{{ task.due_date|date:'Y-m-d' }}" data-time="{{ task.due_time|time:'H:i' }}" data-task-id="{{ task.id }}" {% if task.completed %}class="completed"{% endif %}>
                 <td>{{ task.name }}</td>
                 <td>{{ task.project }}</td>
                 <td class="priority-{{ task.priority|lower }}">{{ task.priority }}</td>
@@ -247,7 +280,7 @@
         console.log('Pending rows after filter:', pendingRows.length);
 
         if (pendingRows.length === 0) {
-            alertBar.innerHTML = '<strong>📋 No pending tasks</strong> — Add a task to get started';
+            alertBar.innerHTML = '<strong> No pending tasks</strong> — Add a task to get started';
             alertBar.className = 'alert-box alert-info';
             alertBar.style.display = 'block';
             alertBar.style.visibility = 'visible';
@@ -278,7 +311,7 @@
 
         if (!nearest) {
             console.log('No valid nearest task found');
-            alertBar.innerHTML = '<strong>📋 No pending tasks</strong> — Add a task to get started';
+            alertBar.innerHTML = '<strong>No pending tasks</strong> — Add a task to get started';
             alertBar.className = 'alert-box alert-info';
             alertBar.style.display = 'block';
             alertBar.style.visibility = 'visible';
@@ -300,10 +333,10 @@
                 const taskName = nearest.row.children[0].textContent.trim();
 
                 if (diffMs < 0) {
-                    html = `<strong>⏰ Task overdue:</strong> ${taskName} — Late by <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
+                    html = `<strong> Task overdue:</strong> ${taskName} — Late by <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
                     cls = 'alert-danger';
                 } else if (diffMs <= 60 * 60 * 1000) {
-                    html = `<strong>⚠️ Due within 1 hour:</strong> ${taskName} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
+                    html = `<strong> Due within 1 hour:</strong> ${taskName} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
                     cls = 'alert-warning';
                 } else {
                     const startToday = new Date();
@@ -312,10 +345,10 @@
                     startTomorrow.setDate(startToday.getDate() + 1);
 
                     if (nearest.due >= startToday && nearest.due < startTomorrow) {
-                        html = `<strong>📅 Due today:</strong> ${taskName} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
+                        html = `<strong> Due today:</strong> ${taskName} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
                         cls = 'alert-warning';
                     } else {
-                        html = `<strong>📌 Upcoming:</strong> ${taskName} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
+                        html = `<strong> Upcoming:</strong> ${taskName} — <strong>${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s</strong>`;
                         cls = 'alert-info';
                     }
                 }
@@ -397,38 +430,4 @@
 
     </script>
   </body>
-</html>
- <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>TaskCLI</title>
-    <link rel="stylesheet" href="/static/style.css" />
-  </head>
-  <body id="main-body-container">
-    <div class="popup-overlay" id="popup">
-      <div class="popup-box">
-        <h3 id="popup-title">Add New Task</h3>
-
-        <form id="taskForm" method="POST" action="/add-task/">
-          {% csrf_token %}
-          <input type="hidden" id="editTaskId" value="">
-          <input type="text" name="name" id="taskName" placeholder="Task" required />
-
-          <select name="project" id="projectName" required>
-            <option value="Professional">Professional</option>
-            <option value="College">College</option>
-            <option value="Personal">Personal</option>
-            <option value="New Project">New Project</option>
-          </select>
-
-          <select name="priority" id="priority" required>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-
-          <input type="date" name="due_date" id="dueDate" required />
-          <input type="time" name="due_time" id="dueTime" required />
-
-          <div class="popup-act 
+</html> 
