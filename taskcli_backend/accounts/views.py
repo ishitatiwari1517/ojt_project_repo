@@ -306,3 +306,172 @@ def delete_task(request, task_id):
     except Task.DoesNotExist:
         pass
     return redirect("/dashboard/")
+
+
+# =============================================================================
+# API ENDPOINTS FOR CLI
+# =============================================================================
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def api_login(request):
+    """API endpoint for CLI login."""
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            email = data.get("email", "")
+            password = data.get("password", "")
+            
+            user = authenticate(username=email, password=password)
+            if user:
+                return JsonResponse({
+                    "success": True,
+                    "user_id": user.id,
+                    "name": user.first_name or user.username,
+                    "email": user.email
+                })
+            else:
+                return JsonResponse({"success": False, "error": "Invalid credentials"}, status=401)
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=400)
+    return JsonResponse({"error": "POST required"}, status=405)
+
+@csrf_exempt
+def api_signup(request):
+    """API endpoint for CLI signup."""
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            name = data.get("name", "")
+            email = data.get("email", "")
+            password = data.get("password", "")
+            
+            if User.objects.filter(username=email).exists():
+                return JsonResponse({"success": False, "error": "Email already exists"}, status=400)
+            
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                first_name=name,
+                password=password
+            )
+            return JsonResponse({
+                "success": True,
+                "user_id": user.id,
+                "name": user.first_name,
+                "email": user.email
+            })
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=400)
+    return JsonResponse({"error": "POST required"}, status=405)
+
+@csrf_exempt
+def api_tasks(request):
+    """API endpoint to list tasks."""
+    if request.method == "GET":
+        email = request.GET.get("email", "")
+        try:
+            user = User.objects.get(username=email)
+            tasks = Task.objects.filter(user=user)
+            task_list = []
+            for t in tasks:
+                task_list.append({
+                    "id": t.id,
+                    "name": t.name,
+                    "project": t.project,
+                    "priority": t.priority,
+                    "due_date": str(t.due_date),
+                    "due_time": str(t.due_time),
+                    "completed": t.completed,
+                    "is_recurring": t.is_recurring
+                })
+            return JsonResponse({"success": True, "tasks": task_list})
+        except User.DoesNotExist:
+            return JsonResponse({"success": False, "error": "User not found"}, status=404)
+    return JsonResponse({"error": "GET required"}, status=405)
+
+@csrf_exempt
+def api_add_task(request):
+    """API endpoint to add a task."""
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            user = User.objects.get(username=data.get("email"))
+            
+            task = Task.objects.create(
+                user=user,
+                name=data.get("name"),
+                project=data.get("project", "General"),
+                priority=data.get("priority", "Medium"),
+                due_date=data.get("due_date"),
+                due_time=data.get("due_time", "12:00"),
+                completed=False,
+                is_recurring=data.get("is_recurring", False)
+            )
+            return JsonResponse({"success": True, "task_id": task.id})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=400)
+    return JsonResponse({"error": "POST required"}, status=405)
+
+@csrf_exempt
+def api_complete_task(request, task_id):
+    """API endpoint to mark task complete."""
+    if request.method == "POST":
+        try:
+            task = Task.objects.get(id=task_id)
+            task.completed = True
+            task.save()
+            return JsonResponse({"success": True})
+        except Task.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Task not found"}, status=404)
+    return JsonResponse({"error": "POST required"}, status=405)
+
+@csrf_exempt
+def api_pending_task(request, task_id):
+    """API endpoint to mark task pending."""
+    if request.method == "POST":
+        try:
+            task = Task.objects.get(id=task_id)
+            task.completed = False
+            task.save()
+            return JsonResponse({"success": True})
+        except Task.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Task not found"}, status=404)
+    return JsonResponse({"error": "POST required"}, status=405)
+
+@csrf_exempt
+def api_edit_task(request, task_id):
+    """API endpoint to edit a task."""
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            task = Task.objects.get(id=task_id)
+            
+            if data.get("name"): task.name = data["name"]
+            if data.get("project"): task.project = data["project"]
+            if data.get("priority"): task.priority = data["priority"]
+            if data.get("due_date"): task.due_date = data["due_date"]
+            if data.get("due_time"): task.due_time = data["due_time"]
+            
+            task.save()
+            return JsonResponse({"success": True})
+        except Task.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Task not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=400)
+    return JsonResponse({"error": "POST required"}, status=405)
+
+@csrf_exempt
+def api_delete_task(request, task_id):
+    """API endpoint to delete a task."""
+    if request.method == "POST":
+        try:
+            task = Task.objects.get(id=task_id)
+            task.delete()
+            return JsonResponse({"success": True})
+        except Task.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Task not found"}, status=404)
+    return JsonResponse({"error": "POST required"}, status=405)
