@@ -34,6 +34,7 @@ echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
 # Start the development server on 127.0.0.1:8000
+export DJANGO_DEBUG=True
 echo "=================================="
 echo "Starting Django development server on 127.0.0.1:8000"
 echo "Press Ctrl+C to stop the server"

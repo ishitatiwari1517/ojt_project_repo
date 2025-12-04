@@ -1,72 +1,210 @@
-# TaskCLI Deployment (Vercel)
+# TaskCLI Deployment Guide
+==========================
 
-These steps explain how to run the **entire project on Vercel**, including the Django backend. Because Vercel’s filesystem is read-only and serverless instances are short-lived, you must rely on external services for state (for example, Vercel Postgres, Neon, Supabase, or Render PostgreSQL). SQLite is not suitable for production on Vercel.
+TaskCLI is a task management application with two interfaces:
+1. **Web Application** - HTML/CSS/JS frontend with Django backend
+2. **CLI Interface** - Interactive terminal-based task manager
 
-## 1. Prepare the codebase
+Both share the **same SQLite database**, ensuring data consistency.
 
-1. Keep the backend inside `taskcli_backend/`. Vercel will treat this folder as the project root when deploying the backend.
-2. Ensure `requirements.txt` lists every Python dependency (already present).
-3. The repo now contains `api/index.py`, which bootstraps Django’s WSGI application for Vercel’s Python runtime. If you move files around, update the `BASE_DIR` calculation inside that file.
-4. (Optional but recommended) Add `whitenoise` to `INSTALLED_APPS` and `MIDDLEWARE` if you want Django to serve its own static files. Alternatively, upload static assets to Vercel storage or another CDN.
+---
 
-## 2. Configure environment variables
+## Option 1: Deploy Web App Only (Recommended for Beginners)
 
-1. Copy the sample file and customise it locally:
+### A) Deploy to Railway (Free Tier)
+
+1. **Install Railway CLI**
+   ```bash
+   npm install -g @railway/cli
+   railway login
+   ```
+
+2. **Prepare for Deployment**
    ```bash
    cd /Users/ishitatiwari/Desktop/ojt-v2/taskcli_backend
-   cp env.example .env
+   
+   # Create Procfile
+   echo "web: gunicorn taskcli.wsgi --log-file -" > Procfile
+   
+   # Update requirements.txt
+   echo "Django>=4.0
+   gunicorn
+   whitenoise" > requirements.txt
    ```
-2. Fill in the values:
-   - `DJANGO_SECRET_KEY`
-   - `DJANGO_ALLOWED_HOSTS` (include the Vercel domain, e.g. `your-project.vercel.app`)
-   - `DJANGO_CSRF_TRUSTED_ORIGINS` (include `https://your-project.vercel.app`)
-   - Database credentials (e.g. `DATABASE_URL`) once you point Django at Postgres.
-3. In the Vercel dashboard (Project → Settings → Environment Variables) add the same keys. Vercel injects them at build and runtime.
 
-## 3. Create `vercel.json`
+3. **Add WhiteNoise for static files** in `taskcli/settings.py`:
+   ```python
+   MIDDLEWARE = [
+       'django.middleware.security.SecurityMiddleware',
+       'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this
+       ...
+   ]
+   
+   STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+   ```
 
-`vercel.json` already lives at the repo root and contains:
-```json
-{
-  "buildCommand": "cd taskcli_backend && pip install -r requirements.txt && python manage.py collectstatic --noinput",
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.11",
-      "maxDuration": 10,
-      "memory": 512
-    }
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index.py" }
-  ]
-}
+4. **Deploy**
+   ```bash
+   railway init
+   railway up
+   ```
+
+5. **Set Environment Variables** (in Railway dashboard):
+   ```
+   DJANGO_SECRET_KEY=your-secure-key
+   DJANGO_DEBUG=False
+   DJANGO_ALLOWED_HOSTS=your-app.railway.app
+   DJANGO_CSRF_TRUSTED_ORIGINS=https://your-app.railway.app
+   ```
+
+---
+
+### B) Deploy to Render (Free Tier)
+
+1. Push code to GitHub
+2. Go to [render.com](https://render.com) and create a new Web Service
+3. Connect your GitHub repo
+4. Set build command: `pip install -r requirements.txt && python manage.py collectstatic --noinput`
+5. Set start command: `gunicorn taskcli.wsgi`
+6. Add environment variables as above
+
+---
+
+### C) Deploy to Vercel (Serverless)
+
+You already have a `vercel.json` file. Just run:
+```bash
+cd /Users/ishitatiwari/Desktop/ojt-v2/taskcli_backend
+vercel --prod
 ```
-Edit this file if you introduce a dedicated frontend (for example, route `/` to a Next.js build and `/api` to Django).
 
-## 4. Deploy with the Vercel CLI or dashboard
+**Note:** Vercel is serverless, so SQLite won't persist between deployments. Use PostgreSQL for production.
 
-1. Install the CLI once: `npm i -g vercel`.
-2. From the repo root run `vercel` (first-time setup) and then `vercel --prod` when you are ready for production.
-3. During the prompts select `taskcli_backend` as the root directory, unless you plan to split frontend and backend into different Vercel projects.
-4. Confirm the build command if prompted (it should match the `buildCommand` from `vercel.json`), and verify that `outputDirectory` is correct for your static assets.
+---
 
-## 5. Database & migrations
+## Option 2: Deploy with PostgreSQL (Production)
 
-1. Provision a Postgres database (Neon/Supabase/Vercel Postgres/etc.).
-2. Update `taskcli_backend/taskcli/settings.py` to read `DATABASE_URL` and configure `dj-database-url` or manual settings.
-3. Set the DB URL in Vercel environment variables.
-4. Run migrations via `vercel env pull` and `python manage.py migrate` locally against the production database, or use `vercel deploy --prebuilt` with a script that runs migrations on cold start (be cautious to avoid race conditions).
+For production, replace SQLite with PostgreSQL:
 
-## 6. Frontend alignment
+1. **Install psycopg2**
+   ```bash
+   pip install psycopg2-binary dj-database-url
+   ```
 
-If your frontend stays on Vercel:
+2. **Update settings.py**
+   ```python
+   import dj_database_url
+   
+   DATABASES = {
+       'default': dj_database_url.config(
+           default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+       )
+   }
+   ```
 
-- Point its API base URL (e.g. `NEXT_PUBLIC_API_URL`) to the same Vercel deployment that runs Django (`https://your-project.vercel.app/api` by default).
-- Redeploy the frontend after changing environment variables.
+3. **Set DATABASE_URL** environment variable:
+   ```
+   DATABASE_URL=postgresql://user:pass@host:5432/dbname
+   ```
 
-## 7. Testing & maintenance
+---
 
-- Use `vercel dev` locally to emulate the platform (it will spin up the Python function and serve static files).
-- Monitor cold-start time and adjust `maxDuration`/`memory` in `vercel.json` if requests are heavy.
-- Keep dependencies in `requirements.txt` up to date and rerun `vercel --prod` whenever you merge backend changes.
+## Option 3: CLI Distribution (PyPI)
 
+Since CLI uses Django ORM, it needs a running database. Options:
+
+### A) CLI as Part of Deployed App
+
+Users can SSH into the server and run:
+```bash
+python manage.py task_cli
+```
+
+### B) Create Standalone CLI with API
+
+For a truly standalone CLI (PyPI distribution), you need to:
+
+1. **Create a REST API** in Django:
+   ```python
+   # accounts/views.py - Add API endpoints
+   from django.http import JsonResponse
+   
+   def api_list_tasks(request):
+       tasks = Task.objects.filter(user=request.user)
+       return JsonResponse({'tasks': list(tasks.values())})
+   ```
+
+2. **Create a separate CLI package** that calls the API:
+   ```python
+   # taskcli_cli/main.py
+   import requests
+   
+   API_URL = "https://your-deployed-app.com/api"
+   
+   def list_tasks():
+       response = requests.get(f"{API_URL}/tasks/")
+       return response.json()
+   ```
+
+3. **Publish to PyPI**:
+   ```bash
+   pip install build twine
+   python -m build
+   twine upload dist/*
+   ```
+
+---
+
+## Recommended Architecture for Your Project
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      PRODUCTION SETUP                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌──────────────┐         ┌──────────────────────┐         │
+│   │  Web App     │         │  PostgreSQL DB       │         │
+│   │  (Railway/   │◄───────►│  (Railway/Render     │         │
+│   │   Render)    │         │   or Supabase)       │         │
+│   └──────────────┘         └──────────────────────┘         │
+│          ▲                           ▲                       │
+│          │                           │                       │
+│   ┌──────┴──────┐           ┌────────┴────────┐             │
+│   │   Browser   │           │  CLI (via SSH   │             │
+│   │   Users     │           │  or API calls)  │             │
+│   └─────────────┘           └─────────────────┘             │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Quick Start Deployment Checklist
+
+- [ ] Update `requirements.txt` with all dependencies
+- [ ] Set `DEBUG=False` in production
+- [ ] Generate a secure `SECRET_KEY`
+- [ ] Configure `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`
+- [ ] Run `python manage.py collectstatic`
+- [ ] Set up PostgreSQL for production (optional but recommended)
+- [ ] Deploy to Railway, Render, or Vercel
+
+---
+
+## Environment Variables Reference
+
+| Variable | Example | Description |
+|----------|---------|-------------|
+| `DJANGO_SECRET_KEY` | `abc123...` | Secret key for Django |
+| `DJANGO_DEBUG` | `False` | Debug mode (False in production) |
+| `DJANGO_ALLOWED_HOSTS` | `myapp.com` | Comma-separated hosts |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://myapp.com` | CSRF origins |
+| `DATABASE_URL` | `postgresql://...` | Database connection URL |
+
+---
+
+## Need Help?
+
+- [Django Deployment Checklist](https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/)
+- [Railway Documentation](https://docs.railway.app)
+- [Render Documentation](https://render.com/docs)

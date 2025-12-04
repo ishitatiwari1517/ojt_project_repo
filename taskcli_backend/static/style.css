@@ -1,3 +1,26 @@
+/*
+ * TaskCLI - Main Stylesheet
+ * =========================
+ * Styles for the TaskCLI web application dashboard.
+ * 
+ * Structure:
+ * - Base styles & layout
+ * - Sidebar navigation (.table)
+ * - Main content area (.main)
+ * - Popup modal styles
+ * - Task table styles
+ * - Alert/notification styles
+ * - Statistics boxes
+ * - Responsive design
+ * 
+ * Color Scheme: Blue theme (#1e3a8a, #2563eb)
+ * 
+ * Author: TaskCLI Team
+ */
+
+/* ==========================================================================
+   BASE STYLES
+   ========================================================================== */
 body {
   margin: 0;
   font-family: "Inter", sans-serif;
@@ -16,6 +39,7 @@ body {
   display: flex;
   width: 100%;
   align-items: stretch;
+  /* position: fixed; */
 }
 
 .popup-overlay {
@@ -87,6 +111,11 @@ body {
   color: white;
   height: 100vh;
   padding: 25px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  overflow-y: auto;
 }
 .table h2 {
   margin-top: 0;
@@ -125,6 +154,7 @@ select.menu-item option {
   min-height: 100vh;
   box-sizing: border-box;
   position: relative;
+  margin-left: 300px;
 }
 .alert-box {
   padding: 16px 20px !important;
