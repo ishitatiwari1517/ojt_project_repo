@@ -1,3 +1,4 @@
+# TaskCLI Backend
 Django>=4.2
 gunicorn
 whitenoise
