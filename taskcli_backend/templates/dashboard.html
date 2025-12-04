@@ -30,6 +30,13 @@
 
           <input type="date" name="due_date" id="dueDate" required />
           <input type="time" name="due_time" id="dueTime" required />
+          
+          <select name="recurrence" id="recurrence">
+            <option value="none">No Recurrence</option>
+            <option value="daily_7">Daily for 1 Week</option>
+            <option value="daily_30">Daily for 1 Month</option>
+            <option value="weekly_4">Weekly for 1 Month</option>
+          </select>
 
           <div class="popup-actions">
             <button type="button" class="btn-small btn-cancel" id="cancelBtn">Cancel</button>
@@ -112,7 +119,7 @@
             </thead>
             <tbody id="taskTbody">
               {% for task in tasks %}
-              <tr data-date="{{ task.due_date|date:'Y-m-d' }}" data-time="{{ task.due_time|time:'H:i' }}" data-task-id="{{ task.id }}" {% if task.completed %}class="completed"{% endif %}>
+              <tr data-date="{{ task.due_date|date:'Y-m-d' }}" data-time="{{ task.due_time|time:'H:i' }}" data-task-id="{{ task.id }}" data-recurring="{{ task.is_recurring|lower }}" {% if task.completed %}class="completed"{% endif %}>
                 <td>{{ task.name }}</td>
                 <td>{{ task.project }}</td>
                 <td class="priority-{{ task.priority|lower }}">{{ task.priority }}</td>
@@ -146,13 +153,13 @@
         editingTaskId = null;
         document.getElementById("popup-title").textContent = "Add New Task";
         document.getElementById("saveBtn").textContent = "Add";
-        document.getElementById("taskForm").action = "/add-task/";
         document.getElementById("editTaskId").value = "";
         document.getElementById("taskName").value = "";
         document.getElementById("projectName").value = "Professional";
         document.getElementById("priority").value = "Medium";
         document.getElementById("dueDate").value = "";
         document.getElementById("dueTime").value = "";
+        document.getElementById("recurrence").value = "none";
         document.getElementById("popup").style.display = "flex";
         document.getElementById("app-content").classList.add("blur");
     }
@@ -257,20 +264,20 @@
         const alertBar = document.getElementById("alert-bar");
         const tbody = document.getElementById("taskTbody");
         
-        // Get all rows from the table body
+        
         const allRows = Array.from(tbody.getElementsByTagName("tr"));
         
         console.log('Total rows in table:', allRows.length);
 
-        // Filter: exclude completed tasks and the "no tasks" placeholder row
+     
         const pendingRows = allRows.filter(r => {
-            // Check if this is the "no tasks" message row
+            
             const firstCell = r.children[0] ? r.children[0].textContent.trim() : '';
             if (firstCell.includes('No tasks yet')) {
                 return false;
             }
             
-            // Check if row has data attributes (real task)
+           
             const hasData = r.dataset.date && r.dataset.time;
             const isNotCompleted = !r.classList.contains("completed");
             
@@ -369,7 +376,7 @@
     document.addEventListener("DOMContentLoaded", function() {
         updateStats();
         
-        // Initialize alert system
+        
         setTimeout(() => {
             computeNearestTask();
         }, 300);

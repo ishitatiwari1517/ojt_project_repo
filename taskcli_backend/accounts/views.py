@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from datetime import datetime, timedelta
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -77,6 +78,7 @@ def add_task(request):
         priority = request.POST.get("priority", "Medium").strip()
         due_date = request.POST.get("due_date", "").strip()
         due_time = request.POST.get("due_time", "").strip()
+        recurrence = request.POST.get("recurrence", "none").strip()
 
         if not name or not project or not due_date or not due_time:
             tasks = Task.objects.filter(user=request.user)
@@ -87,17 +89,37 @@ def add_task(request):
             })
 
         try:
-            Task.objects.create(
-                user=request.user,
-                name=name,
-                project=project,
-                priority=priority,
-                due_date=due_date,
-                due_time=due_time,
-                completed=False
-            )
+            start_date = datetime.strptime(due_date, "%Y-%m-%d").date()
+            dates_to_create = []
+
+            if recurrence == 'daily_7':
+                for i in range(7):
+                    dates_to_create.append(start_date + timedelta(days=i))
+            elif recurrence == 'daily_30':
+                for i in range(30):
+                    dates_to_create.append(start_date + timedelta(days=i))
+            elif recurrence == 'weekly_4':
+                for i in range(4):
+                    dates_to_create.append(start_date + timedelta(weeks=i))
+            else:
+                dates_to_create.append(start_date)
+
+            is_recurring_flag = recurrence != 'none'
+
+            for d in dates_to_create:
+                Task.objects.create(
+                    user=request.user,
+                    name=name,
+                    project=project,
+                    priority=priority,
+                    due_date=d,
+                    due_time=due_time,
+                    completed=False,
+                    is_recurring=is_recurring_flag
+                )
             return redirect("/dashboard/")
         except Exception as e:
+            print(e)
             tasks = Task.objects.filter(user=request.user)
             return render(request, "dashboard.html", {
                 'tasks': tasks,

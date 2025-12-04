@@ -11,6 +11,7 @@ class Task(models.Model):
     due_date = models.DateField()
     due_time = models.TimeField()
     completed = models.BooleanField(default=False)
+    is_recurring = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
