@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd taskcli_backend && pip install -r requirements.txt && python manage.py collectstatic --noinput",
+  "buildCommand": "pip install -r requirements.txt && python manage.py collectstatic --noinput",
   "functions": {
     "api/index.py": {
       "runtime": "python3.11",

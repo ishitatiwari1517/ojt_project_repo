@@ -13,8 +13,8 @@ cd "$SCRIPT_DIR"
 
 # Activate virtual environment
 echo "Activating virtual environment..."
-if [ -d ".venv" ]; then
-    source .venv/bin/activate
+if [ -d "../.venv" ]; then
+    source ../.venv/bin/activate
 else
     echo "Error: Virtual environment (.venv) not found!"
     echo "Please create a virtual environment first with: python3 -m venv .venv"
@@ -22,8 +22,7 @@ else
 fi
 
 # Navigate to backend directory
-echo "Navigating to backend directory..."
-cd taskcli_backend
+echo "Backend directory is ready."
 
 # Run migrations
 echo "Running database migrations..."
