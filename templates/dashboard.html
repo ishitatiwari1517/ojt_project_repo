@@ -32,6 +32,28 @@
       </div>
     </div>
 
+    <div class="popup-overlay" id="edit-popup" style="display: none;">
+      <div class="popup-box">
+        <h3>Edit Task</h3>
+        <form id="editTaskForm" method="POST" action="">
+          {% csrf_token %}
+          <input type="text" name="name" id="editTaskName" required />
+          <input type="text" name="project" id="editProjectName" required />
+          <select name="priority" id="editPriority" required>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <input type="date" name="due_date" id="editDueDate" required />
+          <input type="time" name="due_time" id="editDueTime" required />
+          <div class="popup-actions">
+            <button type="button" class="btn-small btn-cancel" onclick="closeEditModal()">Cancel</button>
+            <button type="submit" class="btn-small btn-confirm">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div id="app-content">
       <div class="table">
         <h2>TaskCLI</h2>
@@ -89,15 +111,17 @@
             </thead>
             <tbody id="taskTbody">
               {% for task in tasks %}
-              <tr data-date="{{ task.due_date }}" data-time="{{ task.due_time }}" data-task-id="{{ task.id }}" {% if task.completed %}class="completed"{% endif %}>
+              <tr data-date="{{ task.due_date|date:'Y-m-d' }}" data-time="{{ task.due_time|time:'H:i' }}" data-task-id="{{ task.id }}" {% if task.completed %}class="completed"{% endif %}>
                 <td>{{ task.name }}</td>
                 <td>{{ task.project }}</td>
                 <td class="priority-{{ task.priority|lower }}">{{ task.priority }}</td>
-                <td>{{ task.due_date }}</td>
-                <td>{{ task.due_time }}</td>
+                <td>{{ task.due_date|date:"M d, Y" }}</td>
+                <td>{{ task.due_time|time:"H:i" }}</td>
                 <td class="actions-cell">
                   {% if not task.completed %}
                     <button class="complete-btn" onclick="completeTask({{ task.id }})">✔ Complete</button>
+                  {% else %}
+                    <button class="complete-btn" style="background: #eab308; color: white; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;" onclick="pendingTask({{ task.id }})">⏳ Pending</button>
                   {% endif %}
                   <button class="action-btn" style="background: #f3f4f6; color: #1e3a8a;" onclick="editTask({{ task.id }})">Edit</button>
                   <button class="action-btn" style="background: #fecaca; color: #dc2626;" onclick="deleteTask({{ task.id }})">Delete</button>
@@ -136,8 +160,30 @@
         window.location.href = `/complete-task/${taskId}/`;
     }
 
+    function pendingTask(taskId) {
+        if (!confirm('Mark this task as pending?')) return;
+        window.location.href = `/pending-task/${taskId}/`;
+    }
+
     function editTask(taskId) {
-        alert('Edit functionality coming soon!');
+        const row = document.querySelector(`tr[data-task-id="${taskId}"]`);
+        if (!row) return;
+
+        document.getElementById("editTaskName").value = row.children[0].textContent;
+        document.getElementById("editProjectName").value = row.children[1].textContent;
+        document.getElementById("editPriority").value = row.children[2].textContent;
+        document.getElementById("editDueDate").value = row.dataset.date;
+        document.getElementById("editDueTime").value = row.dataset.time;
+
+        document.getElementById("editTaskForm").action = `/edit-task/${taskId}/`;
+
+        document.getElementById("edit-popup").style.display = "flex";
+        document.getElementById("app-content").classList.add("blur");
+    }
+
+    function closeEditModal() {
+        document.getElementById("edit-popup").style.display = "none";
+        document.getElementById("app-content").classList.remove("blur");
     }
 
     function deleteTask(taskId) {

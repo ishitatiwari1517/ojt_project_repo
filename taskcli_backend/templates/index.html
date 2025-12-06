@@ -17,60 +17,60 @@
 <title>TaskCLI - Login</title>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
 
 body {
     margin: 0;
     padding: 0;
-    font-family: "Inter", sans-serif;
-    background: radial-gradient(circle at top left, #3B82F6, #1E3A8A 60%);
+    font-family: "Plus Jakarta Sans", sans-serif;
+    background: radial-gradient(circle at top left, #3b82f6 0%, #1e3a8a 100%);
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
     position: relative;
+    color: #ffffff;
 }
 
 .floating-circle {
     position: absolute;
     border-radius: 50%;
-    background: rgba(208, 227, 228, 0.35);
-    box-shadow: 0 0 60px 45px rgba(255,255,255,0.28);
-    filter: blur(20px);
-    animation: floatCrazy 10s infinite ease-in-out alternate;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 60px 30px rgba(255,255,255,0.05);
+    filter: blur(15px);
+    animation: floatCrazy 15s infinite ease-in-out alternate;
 }
-.circle1 { width: 240px; height: 240px; top: 5%; left: 10%; opacity: 0.40; animation-duration: 9s; }
-.circle2 { width: 310px; height: 310px; bottom: 12%; right: 12%; opacity: 0.32; animation-duration: 12s; }
-.circle3 { width: 180px; height: 180px; top: 65%; left: 18%; opacity: 0.28; animation-duration: 7s; }
-.circle4 { width: 260px; height: 260px; top: 30%; right: 22%; opacity: 0.33; animation-duration: 11s; }
-.circle5 { width: 140px; height: 140px; top: 15%; right: 35%; opacity: 0.45; animation-duration: 6s; }
-.circle6 { width: 200px; height: 200px; bottom: 20%; left: 30%; opacity: 0.38; animation-duration: 8s; }
-.circle7 { width: 110px; height: 110px; bottom: 5%; right: 45%; opacity: 0.30; animation-duration: 5s; }
-.circle8 { width: 170px; height: 170px; top: 45%; left: 5%; opacity: 0.42; animation-duration: 13s; }
-.circle9 { width: 220px; height: 220px; top: 10%; right: 5%; opacity: 0.37; animation-duration: 10s; }
-.circle10 { width: 150px; height: 150px; bottom: 35%; right: 25%; opacity: 0.40; animation-duration: 9s; }
-
+.circle1 { width: 240px; height: 240px; top: 5%; left: 10%; animation-duration: 9s; }
+.circle2 { width: 310px; height: 310px; bottom: 12%; right: 12%; animation-duration: 12s; }
+.circle3 { width: 180px; height: 180px; top: 65%; left: 18%; animation-duration: 7s; }
+.circle4 { width: 260px; height: 260px; top: 30%; right: 22%; animation-duration: 11s; }
+.circle5 { width: 140px; height: 140px; top: 15%; right: 35%; animation-duration: 6s; }
+.circle6 { width: 200px; height: 200px; bottom: 20%; left: 30%; animation-duration: 8s; }
+.circle7 { width: 110px; height: 110px; bottom: 5%; right: 45%; animation-duration: 5s; }
+.circle8 { width: 170px; height: 170px; top: 45%; left: 5%; animation-duration: 13s; }
+.circle9 { width: 220px; height: 220px; top: 10%; right: 5%; animation-duration: 10s; }
+.circle10 { width: 150px; height: 150px; bottom: 35%; right: 25%; animation-duration: 9s; }
 
 @keyframes floatCrazy {
     0%   { transform: translate(0px, 0px) scale(1); }
-    20%  { transform: translate(120px, -80px) scale(1.1); }
-    40%  { transform: translate(-150px, 90px) scale(0.9); }
-    60%  { transform: translate(160px, 120px) scale(1.08); }
-    80%  { transform: translate(-200px, -140px) scale(0.95); }
-    100% { transform: translate(180px, -60px) scale(1.12); }
-} 
-
+    100% { transform: translate(60px, -40px) scale(1.1); }
+}
 
 .auth-container {
     width: 380px;
     background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 30px;
-    color: white;
-    box-shadow: 0 4px 20px rgba(0, 0, 50, 0.2);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 40px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     text-align: center;
-    animation: fadeIn 0.5s ease;
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    z-index: 10;
 }
 
 @keyframes fadeIn {
@@ -78,54 +78,71 @@ body {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .auth-container { animation: none; }
-}
-
 .auth-container h2 {
-    margin-bottom: 20px;
-    font-size: 28px;
+    margin-top: 0;
+    margin-bottom: 30px;
+    font-size: 32px;
     font-weight: 700;
+    font-family: "Playfair Display", serif;
+    letter-spacing: -0.5px;
 }
 
 .input-field {
     width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    margin: 10px 0;
-    font-size: 15px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    margin: 8px 0;
+    font-size: 14px;
     outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+
+.input-field::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.input-field:focus {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #ffffff;
 }
 
 .btn {
     width: 100%;
-    padding: 12px;
-    background: #1E3A8A;
+    padding: 14px;
+    background: #ffffff;
     border: none;
-    color: white;
-    font-size: 16px;
-    border-radius: 8px;
+    color: #1e3a8a;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 12px;
     cursor: pointer;
-    margin-top: 15px;
-    transition: 0.2s;
+    margin-top: 20px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .btn:hover {
-    background: #1D4ED8;
+    background: #f0f7ff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .switch-text {
-    margin-top: 15px;
+    margin-top: 20px;
     font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .switch-text span {
-    color: #93C5FD;
+    color: #ffffff;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 600;
 }
-
 </style>
 </head>
 

@@ -18,8 +18,8 @@ import os
 import sys
 from datetime import datetime
 
-# API Base URL - Your Railway deployed app
-API_URL = "https://ojtprojectrepo-production.up.railway.app"
+# API Base URL - Default to Railway deployed app but allow local testing
+API_URL = os.environ.get("TASKCLI_API_URL", "https://ojtprojectrepo-production.up.railway.app")
 
 # ANSI Color Codes
 class Colors:
